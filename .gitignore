@@ -42,3 +42,6 @@ Thumbs.db
 # Environment variables / secrets
 .env
 .env.*
+
+# Generated emulator data
+input_stream.csv
