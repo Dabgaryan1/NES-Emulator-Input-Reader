@@ -10,9 +10,6 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
-import javafx.util.Duration;
 
 // This is the main application class for the Speedrun Input Analyzer.
 public class App extends Application {
@@ -28,17 +25,99 @@ public class App extends Application {
         frameColumn.setCellValueFactory(data ->
                 new ReadOnlyLongWrapper(data.getValue().getFrame())
         );
+        frameColumn.setStyle("-fx-alignment: CENTER;"); // Center align the frame number, repeated for all columns
 
-        //column for displaying the inputs in a human-readable format
-        TableColumn<FrameInput, String> inputColumn =
-                new TableColumn<>("Inputs");
+        //Up button column
+        TableColumn<FrameInput, String> upColumn =
+                new TableColumn<>("U");
 
-        inputColumn.setCellValueFactory(data ->
-                new ReadOnlyStringWrapper(formatInputs(data.getValue()))
+        upColumn.setCellValueFactory(data ->
+                new ReadOnlyStringWrapper(
+                        data.getValue().isU() ? "U" : ""
+                )
         );
+        upColumn.setStyle("-fx-alignment: CENTER;");
+
+        //Down button column
+        TableColumn<FrameInput, String> downColumn =
+                new TableColumn<>("D");
+
+        downColumn.setCellValueFactory(data ->
+                new ReadOnlyStringWrapper(
+                        data.getValue().isD() ? "D" : ""
+                )
+        );
+        downColumn.setStyle("-fx-alignment: CENTER;");
+
+        //Left button column
+        TableColumn<FrameInput, String> leftColumn =
+                new TableColumn<>("L");
+
+        leftColumn.setCellValueFactory(data ->
+                new ReadOnlyStringWrapper(
+                        data.getValue().isL() ? "L" : ""
+                )
+        );
+        leftColumn.setStyle("-fx-alignment: CENTER;");
+
+        //Right button column
+        TableColumn<FrameInput, String> rightColumn =
+                new TableColumn<>("R");
+
+        rightColumn.setCellValueFactory(data ->
+                new ReadOnlyStringWrapper(
+                        data.getValue().isR() ? "R" : ""
+                )
+        );
+        rightColumn.setStyle("-fx-alignment: CENTER;");
+
+        //A button column
+        TableColumn<FrameInput, String> aColumn =
+                new TableColumn<>("A");
+
+        aColumn.setCellValueFactory(data ->
+                new ReadOnlyStringWrapper(
+                        data.getValue().isA() ? "A" : ""
+                )
+        );
+        aColumn.setStyle("-fx-alignment: CENTER;");
+
+        //B button column
+        TableColumn<FrameInput, String> bColumn =
+                new TableColumn<>("B");
+
+        bColumn.setCellValueFactory(data ->
+                new ReadOnlyStringWrapper(
+                        data.getValue().isB() ? "B" : ""
+                )
+        );
+        bColumn.setStyle("-fx-alignment: CENTER;");
+
+        //Start button column
+        TableColumn<FrameInput, String> startColumn =
+                new TableColumn<>("START");
+
+        startColumn.setCellValueFactory(data ->
+                new ReadOnlyStringWrapper(
+                        data.getValue().isStart() ? "START" : ""
+                )
+        );
+        startColumn.setStyle("-fx-alignment: CENTER;");
+
+        //Select button column
+        TableColumn<FrameInput, String> selectColumn =
+                new TableColumn<>("SELECT");
+
+        selectColumn.setCellValueFactory(data ->
+                new ReadOnlyStringWrapper(
+                        data.getValue().isSelect() ? "SELECT" : ""
+                )
+        );
+        selectColumn.setStyle("-fx-alignment: CENTER;");
 
         // Add the columns to the table
-        table.getColumns().addAll(frameColumn, inputColumn);
+        table.getColumns().addAll(frameColumn, upColumn, downColumn, leftColumn,
+                rightColumn, aColumn, bColumn, startColumn, selectColumn);
 
         // Create an observable list to hold the FrameInput objects
         // which allows the table to automatically update when new frames are added
@@ -46,81 +125,17 @@ public class App extends Application {
 
         table.setItems(frames); // Set the observable list as the items for the table
 
-        //fake frames to simulate input events for testing purposes
-        FrameInput[] fakeFrames = {
-                new FrameInput(
-                        100,
-                        false, false, false, true,
-                        false, true,
-                        false, false
-                ),
+        // Create an instance of the input source (in this case, a fake input source for testing)
+        InputSource inputSource = new FakeInputSource();
 
-                new FrameInput(
-                        101,
-                        false, false, false, true,
-                        false, true,
-                        false, false
-                ),
+        // Start receiving input frames from the input source. Each new frame is added to the observable list,
+        // which automatically updates the table view. The table also scrolls to the newly added frame
+        inputSource.start(frame -> {
+            frames.add(frame);
+            table.scrollTo(frame);
+        });
 
-                new FrameInput(
-                        102,
-                        false, false, false, true,
-                        true, true,
-                        false, false
-                ),
-
-                new FrameInput(
-                        103,
-                        false, false, false, true,
-                        true, true,
-                        false, false
-                ),
-
-                new FrameInput(
-                        104,
-                        false, false, false, true,
-                        false, true,
-                        false, false
-                )
-        };
-
-        final int[] index = {0};    // This array is used to keep track of the current index in the fakeFrames array.
-
-        InputAnalyzer analyzer = new InputAnalyzer();
-        FrameInput[] previousFrame = {null};
-
-        // This timeline simulates the passage of time in the application,
-        // adding a new frame every second and comparing it to the
-        // previous frame to detect input events.
-        Timeline timeline = new Timeline(
-                new KeyFrame(Duration.seconds(1), event -> {
-
-                    if (index[0] < fakeFrames.length) {
-
-                        FrameInput current = fakeFrames[index[0]];
-
-                        frames.add(current);
-
-                        if (previousFrame[0] != null) {
-
-                            for (InputEvent inputEvent :
-                                    analyzer.compareFrames(previousFrame[0], current)) {
-
-                                System.out.println(inputEvent);
-                            }
-                        }
-
-                        previousFrame[0] = current;
-
-                        index[0]++;
-                    }
-
-                })
-        );
-
-        timeline.setCycleCount(fakeFrames.length);
-        timeline.play();
-
+        // Set up the JavaFX scene and stage
         VBox root = new VBox(table);
         Scene scene = new Scene(root, 800, 500);
 
@@ -143,7 +158,6 @@ public class App extends Application {
         return sb.toString().trim();
     }
 
-    //main method launches the application
     public static void main(String[] args) {
         launch(args);
     }
