@@ -2,7 +2,7 @@
 
 A Java desktop application that displays controller inputs on individual emulator frames. The goal is to help speedrunners review frame-perfect techniques and determine whether buttons were pressed, held, or released on the intended frames.
 
-The project currently supports NES input captured from Mesen through a Lua script.
+Currently integrates with Mesen through a Lua script to capture NES controller inputs. Tested with Mesen 2; compatibility with other Mesen versions and forks has not been verified.
 
 ## Current Features
 
